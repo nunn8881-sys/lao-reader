@@ -1,4 +1,3 @@
-cat << 'EOF' > app.py
 import asyncio
 import edge_tts
 import streamlit as st
@@ -180,4 +179,3 @@ if st.button("▶ Listen in Lao"):
             st.success("Playback Ready")
     else:
         st.warning("Please enter or paste Lao text first.")
-EOF
