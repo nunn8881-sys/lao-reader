@@ -10,18 +10,18 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom Editorial CSS with High Specificity Overrides
+# Custom Editorial CSS
 st.markdown("""
     <style>
     /* Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Cinzel:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500&display=swap');
 
-    /* Full-Screen Misty Background */
+    /* Global Full-Screen Background */
     .stApp {
         background: linear-gradient(
             to bottom,
-            rgba(20, 15, 10, 0.35),
-            rgba(10, 7, 4, 0.75)
+            rgba(20, 15, 10, 0.25),
+            rgba(10, 7, 4, 0.65)
         ),
         url('https://images.unsplash.com/photo-1540611025311-01df3cef54b5?q=80&w=2000&auto=format&fit=crop') !important;
         background-size: cover !important;
@@ -98,42 +98,47 @@ st.markdown("""
 
     /* Select Dropdown Styling */
     div[data-baseweb="select"], div[data-baseweb="select"] * {
-        background-color: rgba(15, 10, 5, 0.5) !important;
-        backdrop-filter: blur(16px) !important;
-        -webkit-backdrop-filter: blur(16px) !important;
+        background-color: rgba(0, 0, 0, 0.35) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
         border: 1px solid rgba(226, 192, 141, 0.3) !important;
         border-radius: 12px !important;
         color: #ffffff !important;
     }
 
-    /* HIGH SPECIFICITY TEXTAREA & CONTAINER OVERRIDDEN TO FROSTED GLASS */
+    /* COMPLETELY REMOVE BACKGROUND FROM TEXTAREA & PARENT CONTAINERS */
     div[data-testid="stTextArea"],
-    div[data-testid="stTextArea"] > div,
+    div[data-testid="stTextArea"] *,
     div[data-baseweb="textarea"],
-    div[data-baseweb="textarea"] > div {
-        background-color: rgba(15, 10, 5, 0.45) !important;
-        backdrop-filter: blur(18px) !important;
-        -webkit-backdrop-filter: blur(18px) !important;
-        border: 1px solid rgba(226, 192, 141, 0.3) !important;
-        border-radius: 14px !important;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4) !important;
+    div[data-baseweb="textarea"] * {
+        background: transparent !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
     }
 
-    /* TEXT INPUT COLOR & BLENDING */
+    /* ADD ELEGANT TRANSPARENT BORDER DIRECTLY ON TEXTAREA */
+    div[data-baseweb="textarea"] {
+        border: 1px solid rgba(226, 192, 141, 0.4) !important;
+        border-radius: 14px !important;
+        backdrop-filter: blur(4px) !important;
+        -webkit-backdrop-filter: blur(4px) !important;
+        padding: 0.5rem !important;
+    }
+
+    /* TEXT INPUT STYLE */
     textarea[data-testid="stTextArea"],
     .stTextArea textarea {
         color: #ffffff !important;
         -webkit-text-fill-color: #ffffff !important;
         font-family: 'Plus Jakarta Sans', sans-serif !important;
-        font-size: 1.1rem !important;
+        font-size: 1.15rem !important;
         line-height: 1.75 !important;
-        background-color: transparent !important;
-        background: transparent !important;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
     }
 
     textarea::placeholder {
-        color: rgba(255, 255, 255, 0.5) !important;
-        -webkit-text-fill-color: rgba(255, 255, 255, 0.5) !important;
+        color: rgba(255, 255, 255, 0.6) !important;
+        -webkit-text-fill-color: rgba(255, 255, 255, 0.6) !important;
     }
 
     label p {
@@ -142,6 +147,7 @@ st.markdown("""
         text-transform: uppercase !important;
         font-size: 0.78rem !important;
         color: #e2c08d !important;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.8);
     }
 
     /* Gold Action Button */
@@ -174,7 +180,7 @@ st.markdown("""
         margin: 3rem 0 2rem 0;
     }
 
-    /* Audio Player Styling */
+    /* Audio Player Custom Styling */
     audio {
         width: 100% !important;
         margin-top: 1.5rem !important;
