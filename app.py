@@ -1,138 +1,186 @@
 import asyncio
-import base64
 import edge_tts
 import streamlit as st
 
 st.set_page_config(page_title="Lao Reader", page_icon="🔊", layout="centered")
 
 # ----------------------------------------------------------------------
-# Custom CSS — iOS-HIG-inspired, mobile-first, clean card aesthetic
+# Custom CSS — warm editorial "golden hour / Luang Prabang" aesthetic
 # ----------------------------------------------------------------------
 st.markdown(
     """
     <style>
-        /* App-wide font + background */
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500;600&display=swap');
+
         html, body, [class*="css"] {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
-                         "Segoe UI", Roboto, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
         .stApp {
-            background: linear-gradient(180deg, #F2F2F7 0%, #FFFFFF 100%);
+            background: #FBF4E8;
         }
 
-        /* Hide default Streamlit chrome for a more "app-like" feel */
         #MainMenu, footer, header {visibility: hidden;}
 
-        /* Center container width, add card padding on mobile */
         .block-container {
             max-width: 560px;
-            padding-top: 2.2rem;
+            padding-top: 0 !important;
             padding-bottom: 3rem;
         }
 
-        /* Title */
-        h1 {
-            font-size: 1.6rem !important;
-            font-weight: 700 !important;
-            letter-spacing: -0.02em;
-            color: #1C1C1E;
+        /* ---- Hero masthead, sunset-gradient banner ---- */
+        .hero {
+            margin: 0 -1rem 1.8rem -1rem;
+            padding: 3rem 1.5rem 2.4rem 1.5rem;
+            background: linear-gradient(180deg, #F6D9A8 0%, #F0C48A 45%, #E3A868 100%);
+            border-radius: 0 0 22px 22px;
+            text-align: center;
+        }
+        .hero-eyebrow {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: #6B4423;
+            margin-bottom: 0.6rem;
+        }
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #3B2A18;
+            letter-spacing: 0.01em;
+            margin: 0;
+            line-height: 1.15;
+        }
+        .hero-sub {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #8A5A2E;
+            margin-top: 0.5rem;
+        }
+        .hero-sub::before, .hero-sub::after {
+            content: "—";
+            margin: 0 10px;
+            opacity: 0.6;
         }
 
-        /* Card wrapper around the main controls */
+        /* ---- Section labels ---- */
+        .section-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #8A6D4A;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 1.3rem;
+            margin-bottom: 0.4rem;
+        }
+
+        /* ---- Card wrapper ---- */
         div[data-testid="stVerticalBlockBorderWrapper"] {
-            background: #FFFFFF;
-            border-radius: 18px;
+            background: #FFFDF8;
+            border-radius: 16px;
+            border: 1px solid #EAD9B8;
             padding: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
         }
 
-        /* Text area */
+        /* ---- Text area ---- */
         .stTextArea textarea {
-            border-radius: 14px !important;
-            border: 1px solid #E5E5EA !important;
+            border-radius: 12px !important;
+            border: 1px solid #E3D2AC !important;
+            background: #FFFCF5 !important;
             font-size: 1rem !important;
-            background: #F9F9FB !important;
+            color: #3B2A18 !important;
         }
         .stTextArea textarea:focus {
-            border-color: #007AFF !important;
-            box-shadow: 0 0 0 3px rgba(0,122,255,0.15) !important;
+            border-color: #C9862B !important;
+            box-shadow: 0 0 0 3px rgba(201,134,43,0.15) !important;
+        }
+        .stTextArea textarea::placeholder {
+            color: #B79A6E !important;
         }
 
-        /* Select box */
+        /* ---- Select box ---- */
         div[data-baseweb="select"] > div {
-            border-radius: 12px !important;
-            border: 1px solid #E5E5EA !important;
+            border-radius: 10px !important;
+            border: 1px solid #E3D2AC !important;
+            background: #FFFCF5 !important;
         }
 
-        /* Sliders — iOS blue accent */
+        /* ---- Sliders — deep temple-gold accent ---- */
         .stSlider [data-baseweb="slider"] div[role="slider"] {
-            background-color: #007AFF !important;
-            box-shadow: 0 2px 6px rgba(0,122,255,0.4) !important;
+            background-color: #C9862B !important;
+            box-shadow: 0 2px 6px rgba(201,134,43,0.4) !important;
         }
         .stSlider [data-baseweb="slider"] > div > div {
-            background: #007AFF !important;
+            background: #C9862B !important;
         }
 
-        /* Primary button — pill shaped, iOS blue */
+        /* ---- Counter pill ---- */
+        .counter-pill {
+            display: inline-block;
+            background: #F3E4C4;
+            color: #7A5A2E;
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 4px 13px;
+            border-radius: 999px;
+            margin-top: -4px;
+            margin-bottom: 8px;
+        }
+
+        /* ---- Primary button — forest green, pill shaped ---- */
         .stButton > button[kind="primary"] {
-            background: #007AFF;
+            background: #24422E;
             border: none;
-            border-radius: 14px;
+            border-radius: 12px;
             padding: 0.7rem 1rem;
             font-weight: 600;
-            font-size: 1.05rem;
+            font-size: 1.02rem;
             width: 100%;
-            transition: transform 0.05s ease-in-out;
+            letter-spacing: 0.02em;
+        }
+        .stButton > button[kind="primary"]:hover {
+            background: #1B3322;
         }
         .stButton > button[kind="primary"]:active {
             transform: scale(0.98);
         }
 
-        /* Download button */
+        /* ---- Download button — outlined gold ---- */
         .stDownloadButton > button {
-            border-radius: 14px;
-            border: 1px solid #007AFF;
-            color: #007AFF;
-            background: #FFFFFF;
+            border-radius: 12px;
+            border: 1px solid #C9862B;
+            color: #8A5A1E;
+            background: #FFFCF5;
             font-weight: 600;
             width: 100%;
         }
-
-        /* Counter pill */
-        .counter-pill {
-            display: inline-block;
-            background: #F2F2F7;
-            color: #6E6E73;
-            font-size: 0.82rem;
-            padding: 4px 12px;
-            border-radius: 999px;
-            margin-top: -6px;
-            margin-bottom: 10px;
-        }
-
-        /* Section labels */
-        .section-label {
-            font-size: 0.78rem;
-            font-weight: 600;
-            color: #8E8E93;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            margin-top: 1.1rem;
-            margin-bottom: 0.2rem;
+        .stDownloadButton > button:hover {
+            background: #FBF0DC;
         }
 
         audio {
             width: 100%;
-            border-radius: 12px;
+            border-radius: 10px;
             margin-top: 0.8rem;
         }
     </style>
+
+    <div class="hero">
+        <div class="hero-eyebrow">Jet Set Journal · Text to Speech</div>
+        <div class="hero-title">Lao Reader</div>
+        <div class="hero-sub">Laos</div>
+    </div>
     """,
     unsafe_allow_html=True,
 )
 
-st.title("🔊 Lao Text-to-Speech")
 st.caption("Paste Lao script below to listen to natural neural speech.")
 
 # ----------------------------------------------------------------------
@@ -160,14 +208,14 @@ lao_text = st.text_area(
 char_count = len(lao_text)
 word_count = len(lao_text.split()) if lao_text.strip() else 0
 st.markdown(
-    f'<span class="counter-pill">✏️ {word_count} words · {char_count} characters</span>',
+    f'<span class="counter-pill">✏ {word_count} words · {char_count} characters</span>',
     unsafe_allow_html=True,
 )
 
 # ----------------------------------------------------------------------
 # Speed / Pitch / Volume controls
 # ----------------------------------------------------------------------
-st.markdown('<div class="section-label">Playback Settings</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-label">Playback settings</div>', unsafe_allow_html=True)
 
 col1, col2 = st.columns(2)
 with col1:
@@ -177,7 +225,6 @@ with col2:
 
 pitch_hz = st.slider("Pitch", min_value=-20, max_value=20, value=0, step=2, format="%dHz")
 
-# edge-tts expects signed strings like "+10%", "-5%", "+0Hz"
 rate_str = f"{'+' if rate_pct >= 0 else ''}{rate_pct}%"
 volume_str = f"{'+' if volume_pct >= 0 else ''}{volume_pct}%"
 pitch_str = f"{'+' if pitch_hz >= 0 else ''}{pitch_hz}Hz"
@@ -212,7 +259,6 @@ if st.button("▶  Listen in Lao", type="primary"):
     else:
         st.warning("Please paste some Lao text first!")
 
-# Persist audio + show player/download across reruns (e.g. slider tweaks)
 if "audio_path" in st.session_state:
     with open(st.session_state["audio_path"], "rb") as f:
         audio_bytes = f.read()
