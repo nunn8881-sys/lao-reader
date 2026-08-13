@@ -10,23 +10,23 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom Editorial CSS
+# Custom Editorial CSS with High Specificity Overrides
 st.markdown("""
     <style>
     /* Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Cinzel:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500&display=swap');
 
-    /* Full-Screen Misty Luang Prabang Temple Background */
+    /* Full-Screen Misty Background */
     .stApp {
         background: linear-gradient(
             to bottom,
             rgba(20, 15, 10, 0.35),
             rgba(10, 7, 4, 0.75)
         ),
-        url('https://images.unsplash.com/photo-1540611025311-01df3cef54b5?q=80&w=2000&auto=format&fit=crop');
-        background-size: cover;
-        background-position: center center;
-        background-attachment: fixed;
+        url('https://images.unsplash.com/photo-1540611025311-01df3cef54b5?q=80&w=2000&auto=format&fit=crop') !important;
+        background-size: cover !important;
+        background-position: center center !important;
+        background-attachment: fixed !important;
         color: #f7f4ef;
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
@@ -41,16 +41,6 @@ st.markdown("""
         padding-top: 3.5rem !important;
         padding-bottom: 6rem !important;
         max-width: 800px !important;
-    }
-
-    /* Animation */
-    @keyframes fadeInUp {
-        0% { opacity: 0; transform: translateY(18px); }
-        100% { opacity: 1; transform: translateY(0); }
-    }
-
-    .animated-content {
-        animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     /* Editorial Header Typography */
@@ -107,8 +97,8 @@ st.markdown("""
     }
 
     /* Select Dropdown Styling */
-    div[data-baseweb="select"] {
-        background-color: rgba(15, 10, 5, 0.45) !important;
+    div[data-baseweb="select"], div[data-baseweb="select"] * {
+        background-color: rgba(15, 10, 5, 0.5) !important;
         backdrop-filter: blur(16px) !important;
         -webkit-backdrop-filter: blur(16px) !important;
         border: 1px solid rgba(226, 192, 141, 0.3) !important;
@@ -116,27 +106,34 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* Translucent Blended Text Area Container */
-    div[data-baseweb="textarea"] {
+    /* HIGH SPECIFICITY TEXTAREA & CONTAINER OVERRIDDEN TO FROSTED GLASS */
+    div[data-testid="stTextArea"],
+    div[data-testid="stTextArea"] > div,
+    div[data-baseweb="textarea"],
+    div[data-baseweb="textarea"] > div {
         background-color: rgba(15, 10, 5, 0.45) !important;
-        backdrop-filter: blur(16px) !important;
-        -webkit-backdrop-filter: blur(16px) !important;
+        backdrop-filter: blur(18px) !important;
+        -webkit-backdrop-filter: blur(18px) !important;
         border: 1px solid rgba(226, 192, 141, 0.3) !important;
         border-radius: 14px !important;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4) !important;
     }
 
-    /* Text Inside Input Box */
-    textarea {
+    /* TEXT INPUT COLOR & BLENDING */
+    textarea[data-testid="stTextArea"],
+    .stTextArea textarea {
         color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
         font-family: 'Plus Jakarta Sans', sans-serif !important;
         font-size: 1.1rem !important;
         line-height: 1.75 !important;
+        background-color: transparent !important;
         background: transparent !important;
     }
 
     textarea::placeholder {
-        color: rgba(255, 255, 255, 0.45) !important;
+        color: rgba(255, 255, 255, 0.5) !important;
+        -webkit-text-fill-color: rgba(255, 255, 255, 0.5) !important;
     }
 
     label p {
@@ -177,7 +174,7 @@ st.markdown("""
         margin: 3rem 0 2rem 0;
     }
 
-    /* Audio Player Custom Styling */
+    /* Audio Player Styling */
     audio {
         width: 100% !important;
         margin-top: 1.5rem !important;
@@ -189,15 +186,12 @@ st.markdown("""
 
 # Editorial Header
 st.markdown("""
-    <div class="animated-content">
+    <div>
         <div class="editorial-sub">Neural Voice Synthesis</div>
         <div class="editorial-title">LAO TEXT TO SPEECH</div>
         <div class="editorial-tagline">— Transform Lao script into natural, resonant voice —</div>
     </div>
 """, unsafe_allow_html=True)
-
-# Main Controls Layout
-st.markdown('<div class="animated-content">', unsafe_allow_html=True)
 
 # Voice Selection
 voice = st.selectbox(
@@ -239,9 +233,7 @@ if st.button("▶ Read Aloud"):
     else:
         st.warning("Please paste Lao script first.")
 
-st.markdown('</div>', unsafe_allow_html=True)
-
-# Minimal Footer
+# Footer
 st.markdown("""
     <div class="gold-divider"></div>
     <div style="text-align: center; font-family: 'Cormorant Garamond', serif; font-style: italic; color: #d4c5b3; font-size: 1.1rem;">
