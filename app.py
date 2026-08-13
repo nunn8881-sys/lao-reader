@@ -13,17 +13,17 @@ st.set_page_config(
 # Custom Editorial CSS
 st.markdown("""
     <style>
-    /* Google Display Fonts */
+    /* Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Cinzel:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500&display=swap');
 
-    /* Global Lao Golden-Hour Background */
+    /* Full-Screen Misty Luang Prabang Temple Background */
     .stApp {
         background: linear-gradient(
             to bottom,
-            rgba(18, 13, 8, 0.45),
-            rgba(10, 7, 4, 0.85)
+            rgba(20, 15, 10, 0.40),
+            rgba(10, 7, 4, 0.80)
         ),
-        url('https://images.unsplash.com/photo-1528181304800-259b08848526?q=80&w=2000&auto=format&fit=crop');
+        url('https://images.unsplash.com/photo-1540611025311-01df3cef54b5?q=80&w=2000&auto=format&fit=crop');
         background-size: cover;
         background-position: center center;
         background-attachment: fixed;
@@ -43,17 +43,17 @@ st.markdown("""
         max-width: 800px !important;
     }
 
-    /* Smooth Scroll/Load Animations */
+    /* Animation */
     @keyframes fadeInUp {
-        0% { opacity: 0; transform: translateY(20px); }
+        0% { opacity: 0; transform: translateY(18px); }
         100% { opacity: 1; transform: translateY(0); }
     }
 
-    .animated-hero {
-        animation: fadeInUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    .animated-content {
+        animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    /* Editorial Typography */
+    /* Editorial Header Typography */
     .editorial-sub {
         font-family: 'Cinzel', serif;
         letter-spacing: 0.45em;
@@ -83,21 +83,10 @@ st.markdown("""
         font-size: 1.35rem;
         color: #d4c5b3;
         text-align: center;
-        margin-bottom: 2.8rem;
+        margin-bottom: 2.5rem;
     }
 
-    /* Frosted Glass Card Panel */
-    .glass-card {
-        background: rgba(255, 255, 255, 0.06);
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
-        border: 1px solid rgba(226, 192, 141, 0.22);
-        border-radius: 20px;
-        padding: 2.2rem;
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
-    }
-
-    /* FORCE REMOVE ALL STREAMLIT RED SLIDER COLORS */
+    /* REMOVE DEFAULT RED ACCENTS ON SLIDERS */
     div[data-baseweb="slider"] div[role="slider"] {
         background-color: #e2c08d !important;
         border: 2px solid #ffffff !important;
@@ -108,7 +97,7 @@ st.markdown("""
         background-color: rgba(226, 192, 141, 0.25) !important;
     }
 
-    /* Slider track color override */
+    /* Active slider track gradient override */
     div[data-baseweb="slider"] > div > div > div {
         background: linear-gradient(90deg, #c99e66 0%, #e2c08d 100%) !important;
     }
@@ -117,10 +106,11 @@ st.markdown("""
         color: #e2c08d !important;
     }
 
-    /* Form Controls Styling */
+    /* Form Inputs Styling */
     div[data-baseweb="select"], div[data-baseweb="textarea"] {
-        background-color: rgba(0, 0, 0, 0.3) !important;
-        backdrop-filter: blur(12px) !important;
+        background-color: rgba(0, 0, 0, 0.35) !important;
+        backdrop-filter: blur(14px) !important;
+        -webkit-backdrop-filter: blur(14px) !important;
         border: 1px solid rgba(226, 192, 141, 0.25) !important;
         border-radius: 12px !important;
         color: #ffffff !important;
@@ -175,7 +165,7 @@ st.markdown("""
         margin: 3rem 0 2rem 0;
     }
 
-    /* Audio Player Custom Filter */
+    /* Audio Player Custom Styling */
     audio {
         width: 100% !important;
         margin-top: 1.5rem !important;
@@ -185,17 +175,17 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Editorial Header Component
+# Editorial Header
 st.markdown("""
-    <div class="animated-hero">
+    <div class="animated-content">
         <div class="editorial-sub">Neural Voice Synthesis</div>
         <div class="editorial-title">LAO TEXT TO SPEECH</div>
         <div class="editorial-tagline">— Transform Lao script into natural, resonant voice —</div>
     </div>
 """, unsafe_allow_html=True)
 
-# Main Speech Panel
-st.markdown('<div class="glass-card animated-hero">', unsafe_allow_html=True)
+# Main Controls Layout (No extra wrap divs)
+st.markdown('<div class="animated-content">', unsafe_allow_html=True)
 
 # Voice Selection
 voice = st.selectbox(
@@ -204,7 +194,7 @@ voice = st.selectbox(
 )
 voice_code = voice.split(" ")[0]
 
-# Speed & Pitch Sliders
+# Speed & Pitch Controls
 col_speed, col_pitch = st.columns(2)
 
 with col_speed:
@@ -215,19 +205,19 @@ with col_pitch:
     pitch = st.slider("Voice Tone / Pitch", min_value=-20, max_value=20, value=0, step=5)
     pitch_str = f"{pitch:+d}Hz"
 
-# Script Input Area
+# Text Passage Input
 lao_text = st.text_area(
     "Lao Script Passage",
     height=210,
     placeholder="ວາງຂໍ້ຄວາມພາສາລາວຢູ່ທີ່ນີ້..."
 )
 
-# Async Audio Generator
+# Async Audio Generation
 async def generate_audio(text, voice_name, rate, pitch_val):
     communicate = edge_tts.Communicate(text, voice_name, rate=rate, pitch=pitch_val)
     await communicate.save("output.mp3")
 
-# Trigger Action
+# Action Button
 if st.button("▶ Read Aloud"):
     if lao_text.strip():
         with st.spinner("Synthesizing natural Lao speech..."):
@@ -239,7 +229,7 @@ if st.button("▶ Read Aloud"):
 
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Footer
+# Minimal Footer
 st.markdown("""
     <div class="gold-divider"></div>
     <div style="text-align: center; font-family: 'Cormorant Garamond', serif; font-style: italic; color: #d4c5b3; font-size: 1.1rem;">
