@@ -20,8 +20,8 @@ st.markdown("""
     .stApp {
         background: linear-gradient(
             to bottom,
-            rgba(20, 15, 10, 0.40),
-            rgba(10, 7, 4, 0.80)
+            rgba(20, 15, 10, 0.35),
+            rgba(10, 7, 4, 0.75)
         ),
         url('https://images.unsplash.com/photo-1540611025311-01df3cef54b5?q=80&w=2000&auto=format&fit=crop');
         background-size: cover;
@@ -106,25 +106,37 @@ st.markdown("""
         color: #e2c08d !important;
     }
 
-    /* Form Inputs Styling */
-    div[data-baseweb="select"], div[data-baseweb="textarea"] {
-        background-color: rgba(0, 0, 0, 0.35) !important;
-        backdrop-filter: blur(14px) !important;
-        -webkit-backdrop-filter: blur(14px) !important;
-        border: 1px solid rgba(226, 192, 141, 0.25) !important;
+    /* Select Dropdown Styling */
+    div[data-baseweb="select"] {
+        background-color: rgba(15, 10, 5, 0.45) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border: 1px solid rgba(226, 192, 141, 0.3) !important;
         border-radius: 12px !important;
         color: #ffffff !important;
     }
 
+    /* Translucent Blended Text Area Container */
+    div[data-baseweb="textarea"] {
+        background-color: rgba(15, 10, 5, 0.45) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border: 1px solid rgba(226, 192, 141, 0.3) !important;
+        border-radius: 14px !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37) !important;
+    }
+
+    /* Text Inside Input Box */
     textarea {
         color: #ffffff !important;
         font-family: 'Plus Jakarta Sans', sans-serif !important;
-        font-size: 1.05rem !important;
-        line-height: 1.7 !important;
+        font-size: 1.1rem !important;
+        line-height: 1.75 !important;
+        background: transparent !important;
     }
 
     textarea::placeholder {
-        color: rgba(255, 255, 255, 0.35) !important;
+        color: rgba(255, 255, 255, 0.45) !important;
     }
 
     label p {
@@ -184,7 +196,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# Main Controls Layout (No extra wrap divs)
+# Main Controls Layout
 st.markdown('<div class="animated-content">', unsafe_allow_html=True)
 
 # Voice Selection
@@ -205,10 +217,10 @@ with col_pitch:
     pitch = st.slider("Voice Tone / Pitch", min_value=-20, max_value=20, value=0, step=5)
     pitch_str = f"{pitch:+d}Hz"
 
-# Text Passage Input
+# Script Input Area
 lao_text = st.text_area(
     "Lao Script Passage",
-    height=210,
+    height=220,
     placeholder="ວາງຂໍ້ຄວາມພາສາລາວຢູ່ທີ່ນີ້..."
 )
 
@@ -217,7 +229,7 @@ async def generate_audio(text, voice_name, rate, pitch_val):
     communicate = edge_tts.Communicate(text, voice_name, rate=rate, pitch=pitch_val)
     await communicate.save("output.mp3")
 
-# Action Button
+# Trigger Action
 if st.button("▶ Read Aloud"):
     if lao_text.strip():
         with st.spinner("Synthesizing natural Lao speech..."):
