@@ -1,114 +1,71 @@
 import asyncio
+import base64
+import os
+
 import edge_tts
 import streamlit as st
 
 st.set_page_config(page_title="Lao Reader", page_icon="🔊", layout="centered")
 
+ASSETS_DIR = "."
+
+
+def raw(html: str) -> str:
+    """Strip leading whitespace from every line so Streamlit's markdown
+    parser doesn't mistake indented HTML/CSS for a code block."""
+    return "\n".join(line.lstrip() for line in html.strip("\n").splitlines())
+
+
+def image_to_data_uri(filename: str) -> str | None:
+    path = os.path.join(ASSETS_DIR, filename)
+    if not os.path.exists(path):
+        return None
+    with open(path, "rb") as f:
+        b64 = base64.b64encode(f.read()).decode()
+    return f"data:image/jpeg;base64,{b64}"
+
+
+hero_bg = image_to_data_uri("hero_river.jpg")
+temple_img = image_to_data_uri("hero_temple.jpg")
+monks_img = image_to_data_uri("hero_monks.jpg")
+
+missing = [
+    name
+    for name, val in [
+        ("hero_river.jpg", hero_bg),
+        ("hero_temple.jpg", temple_img),
+        ("hero_monks.jpg", monks_img),
+    ]
+    if val is None
+]
+
 # ----------------------------------------------------------------------
-# Custom CSS + decorative SVG artwork + scroll animations
+# Base styling (fonts, cards, inputs, buttons)
 # ----------------------------------------------------------------------
 st.markdown(
-    """
-    <style>
+    raw(
+        """
+        <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500;600&display=swap');
 
         html, body, [class*="css"] {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
-
-        .stApp {
-            background: #FBF4E8;
-        }
-
-        #MainMenu, footer, header {visibility: hidden;}
-
+        .stApp { background: #FBF4E8; }
+        #MainMenu, footer, header { visibility: hidden; }
         .block-container {
             max-width: 560px;
             padding-top: 0 !important;
             padding-bottom: 3rem;
         }
 
-        /* ---- Hero: layered gradient sky + parallax silhouettes ---- */
-        .hero {
-            position: relative;
-            overflow: hidden;
-            margin: 0 -1rem 2rem -1rem;
-            padding: 3.4rem 1.5rem 2.6rem 1.5rem;
-            background: linear-gradient(180deg, #F8E0AE 0%, #F0C48A 45%, #E3A868 100%);
-            border-radius: 0 0 26px 26px;
-            text-align: center;
-        }
-        .hero-mist {
-            position: absolute;
-            left: -10%;
-            width: 120%;
-            height: 60px;
-            background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0));
-            filter: blur(6px);
-            animation: driftMist 14s ease-in-out infinite alternate;
-            pointer-events: none;
-        }
-        .hero-mist.m1 { top: 10px; opacity: 0.7; }
-        .hero-mist.m2 { top: 55px; opacity: 0.45; animation-duration: 18s; }
-        @keyframes driftMist {
-            0%   { transform: translateX(-4%); }
-            100% { transform: translateX(4%); }
-        }
-        .hero-mountains {
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            width: 100%;
-            display: block;
-            opacity: 0.9;
-        }
-        .hero-palm {
-            position: absolute;
-            width: 90px;
-            opacity: 0.85;
-        }
-        .hero-palm.left  { top: 8px; left: -6px; transform: scaleX(-1); }
-        .hero-palm.right { top: 4px; right: -10px; }
-
-        .hero-content { position: relative; z-index: 2; }
-        .hero-eyebrow {
-            font-size: 0.72rem;
-            font-weight: 600;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: #6B4423;
-            margin-bottom: 0.6rem;
-        }
-        .hero-title {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.5rem;
-            font-weight: 600;
-            color: #3B2A18;
-            margin: 0;
-            line-height: 1.15;
-        }
-        .hero-sub {
-            font-size: 0.85rem;
-            font-weight: 500;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: #8A5A2E;
-            margin-top: 0.5rem;
-        }
-        .hero-sub::before, .hero-sub::after { content: "—"; margin: 0 10px; opacity: 0.6; }
-
-        /* ---- Scroll-reveal ---- */
         .reveal {
             opacity: 0;
             transform: translateY(24px);
             transition: opacity 0.7s ease, transform 0.7s ease;
         }
-        .reveal.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
 
-        /* ---- Section labels ---- */
         .section-label {
             font-size: 0.72rem;
             font-weight: 600;
@@ -119,7 +76,6 @@ st.markdown(
             margin-bottom: 0.4rem;
         }
 
-        /* ---- Card wrapper ---- */
         div[data-testid="stVerticalBlockBorderWrapper"] {
             background: #FFFDF8;
             border-radius: 16px;
@@ -189,54 +145,141 @@ st.markdown(
 
         audio { width: 100%; border-radius: 10px; margin-top: 0.8rem; }
 
-        /* Small decorative divider between sections */
-        .leaf-divider {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 1.6rem 0 0.4rem 0;
-            opacity: 0.6;
+        /* Hero */
+        .hero {
+            position: relative;
+            overflow: hidden;
+            margin: 0 -1rem 2rem -1rem;
+            height: 280px;
+            border-radius: 0 0 26px 26px;
         }
-    </style>
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center 35%;
+            transform: scale(1.08);
+            will-change: transform;
+        }
+        .hero-scrim {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(30,20,10,0.15) 0%, rgba(30,20,10,0.05) 40%, rgba(30,20,10,0.55) 100%);
+        }
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding-bottom: 1.8rem;
+            text-align: center;
+        }
+        .hero-eyebrow {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: #F6E6C6;
+            margin-bottom: 0.5rem;
+        }
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.4rem;
+            font-weight: 600;
+            color: #FFFCF5;
+            margin: 0;
+            line-height: 1.1;
+        }
+        .hero-sub {
+            font-size: 0.82rem;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #E9D2A0;
+            margin-top: 0.4rem;
+        }
+        .hero-sub::before, .hero-sub::after { content: "—"; margin: 0 10px; opacity: 0.7; }
 
-    <div class="hero">
-        <div class="hero-mist m1"></div>
-        <div class="hero-mist m2"></div>
-
-        <svg class="hero-palm left" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <g fill="#4A6B3E">
-                <path d="M50 90 C 48 60, 45 40, 30 15 C 42 25, 48 40, 50 55 C 52 40, 58 25, 70 15 C 55 40, 52 60, 50 90 Z"/>
-                <path d="M50 55 C 40 45, 20 40, 5 45 C 22 48, 38 55, 50 62 Z"/>
-                <path d="M50 55 C 60 45, 80 40, 95 45 C 78 48, 62 55, 50 62 Z"/>
-                <path d="M50 40 C 42 28, 25 20, 8 20 C 25 26, 40 34, 50 45 Z"/>
-                <path d="M50 40 C 58 28, 75 20, 92 20 C 75 26, 60 34, 50 45 Z"/>
-            </g>
-        </svg>
-        <svg class="hero-palm right" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <g fill="#3E5C33">
-                <path d="M50 90 C 48 60, 45 40, 30 15 C 42 25, 48 40, 50 55 C 52 40, 58 25, 70 15 C 55 40, 52 60, 50 90 Z"/>
-                <path d="M50 55 C 40 45, 20 40, 5 45 C 22 48, 38 55, 50 62 Z"/>
-                <path d="M50 55 C 60 45, 80 40, 95 45 C 78 48, 62 55, 50 62 Z"/>
-                <path d="M50 40 C 42 28, 25 20, 8 20 C 25 26, 40 34, 50 45 Z"/>
-                <path d="M50 40 C 58 28, 75 20, 92 20 C 75 26, 60 34, 50 45 Z"/>
-            </g>
-        </svg>
-
-        <div class="hero-content">
-            <div class="hero-eyebrow">Jet Set Journal · Text to Speech</div>
-            <div class="hero-title">Lao Reader</div>
-            <div class="hero-sub">Laos</div>
-        </div>
-
-        <svg class="hero-mountains" viewBox="0 0 500 90" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0,90 L0,55 Q60,20 120,45 T240,35 Q300,15 360,40 T500,30 L500,90 Z" fill="#7A8B6A" opacity="0.55"/>
-            <path d="M0,90 L0,68 Q80,42 160,60 T320,55 Q400,38 500,58 L500,90 Z" fill="#4E5F42" opacity="0.75"/>
-            <path d="M235,42 L245,20 L255,42 Z" fill="#D9A736"/>
-        </svg>
-    </div>
-    """,
+        /* Scroll photo panels */
+        .photo-panel {
+            position: relative;
+            margin: 1.6rem 0;
+            border-radius: 18px;
+            overflow: hidden;
+            height: 190px;
+        }
+        .photo-panel img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .photo-caption {
+            position: absolute;
+            left: 14px;
+            bottom: 12px;
+            z-index: 2;
+            color: #FFFCF5;
+            font-size: 0.78rem;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .photo-scrim {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(20,15,5,0) 55%, rgba(20,15,5,0.55) 100%);
+        }
+        </style>
+        """
+    ),
     unsafe_allow_html=True,
 )
+
+# ----------------------------------------------------------------------
+# Hero banner (real photo background)
+# ----------------------------------------------------------------------
+if hero_bg:
+    st.markdown(
+        raw(
+            f"""
+            <div class="hero">
+                <div class="hero-bg" id="heroBg" style="background-image:url('{hero_bg}');"></div>
+                <div class="hero-scrim"></div>
+                <div class="hero-content">
+                    <div class="hero-eyebrow">Jet Set Journal · Text to Speech</div>
+                    <div class="hero-title">Lao Reader</div>
+                    <div class="hero-sub">Laos</div>
+                </div>
+            </div>
+            """
+        ),
+        unsafe_allow_html=True,
+    )
+else:
+    st.markdown(
+        raw(
+            """
+            <div class="hero" style="background:linear-gradient(180deg,#F6D9A8,#E3A868);">
+                <div class="hero-content">
+                    <div class="hero-eyebrow">Jet Set Journal · Text to Speech</div>
+                    <div class="hero-title">Lao Reader</div>
+                    <div class="hero-sub">Laos</div>
+                </div>
+            </div>
+            """
+        ),
+        unsafe_allow_html=True,
+    )
+
+if missing:
+    st.info(
+        "Add these files to an `assets/` folder next to app.py to enable the "
+        "photo hero and panels: " + ", ".join(missing)
+    )
 
 st.caption("Paste Lao script below to listen to natural neural speech.")
 
@@ -250,6 +293,23 @@ voice = st.selectbox(
     label_visibility="collapsed",
 )
 voice_code = voice.split(" ")[0]
+
+# ----------------------------------------------------------------------
+# Scroll photo panel 1
+# ----------------------------------------------------------------------
+if temple_img:
+    st.markdown(
+        raw(
+            f"""
+            <div class="photo-panel reveal">
+                <img src="{temple_img}" alt="Misty temple roofline in Luang Prabang">
+                <div class="photo-scrim"></div>
+                <div class="photo-caption">Luang Prabang, Laos</div>
+            </div>
+            """
+        ),
+        unsafe_allow_html=True,
+    )
 
 # ----------------------------------------------------------------------
 # Text input + live word/character counter
@@ -285,6 +345,23 @@ pitch_hz = st.slider("Pitch", min_value=-20, max_value=20, value=0, step=2, form
 rate_str = f"{'+' if rate_pct >= 0 else ''}{rate_pct}%"
 volume_str = f"{'+' if volume_pct >= 0 else ''}{volume_pct}%"
 pitch_str = f"{'+' if pitch_hz >= 0 else ''}{pitch_hz}Hz"
+
+# ----------------------------------------------------------------------
+# Scroll photo panel 2
+# ----------------------------------------------------------------------
+if monks_img:
+    st.markdown(
+        raw(
+            f"""
+            <div class="photo-panel reveal">
+                <img src="{monks_img}" alt="Morning alms procession in Luang Prabang">
+                <div class="photo-scrim"></div>
+                <div class="photo-caption">Morning alms, Luang Prabang</div>
+            </div>
+            """
+        ),
+        unsafe_allow_html=True,
+    )
 
 # ----------------------------------------------------------------------
 # Generate audio
@@ -330,28 +407,41 @@ if "audio_path" in st.session_state:
     )
 
 # ----------------------------------------------------------------------
-# Scroll-reveal script — fades/slides sections in as you scroll past them
+# Scroll-reveal + hero parallax script
 # ----------------------------------------------------------------------
 st.markdown(
-    """
-    <script>
-    function initReveal() {
-        const doc = window.parent.document;
-        const items = doc.querySelectorAll('.section-label, .stTextArea, .stSlider, .stSelectbox, .stButton, .stDownloadButton');
-        items.forEach(el => el.classList.add('reveal'));
+    raw(
+        """
+        <script>
+        function initScrollFx() {
+            const doc = window.parent.document;
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, { threshold: 0.15 });
+            const items = doc.querySelectorAll(
+                '.section-label, .stTextArea, .stSlider, .stSelectbox, .stButton, .stDownloadButton, .photo-panel'
+            );
+            items.forEach(el => el.classList.add('reveal'));
 
-        items.forEach(el => observer.observe(el));
-    }
-    setTimeout(initReveal, 300);
-    </script>
-    """,
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) entry.target.classList.add('visible');
+                });
+            }, { threshold: 0.15 });
+            items.forEach(el => observer.observe(el));
+
+            const scrollContainer = doc.querySelector('section.main') || doc;
+            const heroBg = doc.getElementById('heroBg');
+            if (heroBg) {
+                const onScroll = () => {
+                    const y = (scrollContainer.scrollTop || window.parent.scrollY || 0);
+                    heroBg.style.transform = `scale(1.08) translateY(${Math.min(y * 0.25, 40)}px)`;
+                };
+                scrollContainer.addEventListener('scroll', onScroll);
+                window.parent.addEventListener('scroll', onScroll);
+            }
+        }
+        setTimeout(initScrollFx, 300);
+        </script>
+        """
+    ),
     unsafe_allow_html=True,
 )
