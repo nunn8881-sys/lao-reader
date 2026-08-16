@@ -5,409 +5,333 @@ import streamlit.components.v1 as components
 
 # Page configuration
 st.set_page_config(
-    page_title="Lao Text-to-Speech | Neural Reader",
-    page_icon="🔊",
+    page_title="Lao Text-to-Speech",
+    page_icon="◎",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-HERO_IMAGE = "https://images.unsplash.com/photo-1540611025311-01df3cef54b5?q=80&w=2000&auto=format&fit=crop"
-
-# Custom Editorial CSS
+# ---------------------------------------------------------------------------
+# Global styling — Apple × Notion: white space, restrained type, one accent.
+# ---------------------------------------------------------------------------
 st.markdown("""
     <style>
-    /* Google Fonts */
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Cinzel:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-    /* Global Full-Screen Background */
+    :root {
+        --bg: #ffffff;
+        --bg-soft: #f5f5f7;
+        --text: #1d1d1f;
+        --text-soft: #6e6e73;
+        --border: rgba(0, 0, 0, 0.08);
+        --accent: #0071e3;
+        --accent-soft: rgba(0, 113, 227, 0.10);
+    }
+
+    html, body, [class*="css"] {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
     .stApp {
         background:
-            linear-gradient(to bottom, rgba(12, 16, 12, 0.55), rgba(8, 10, 8, 0.88)),
-            url('__HERO_IMAGE__');
-        background-size: cover !important;
-        background-position: center center !important;
-        background-attachment: fixed !important;
-        color: #f7f4ef;
-        font-family: 'Plus Jakarta Sans', sans-serif;
+            radial-gradient(circle at 12% 8%, rgba(0, 113, 227, 0.07), transparent 38%),
+            radial-gradient(circle at 88% 18%, rgba(191, 90, 242, 0.06), transparent 42%),
+            var(--bg) !important;
+        color: var(--text);
     }
 
-    /* Drifting mist / gold light-leak ambience */
-    .stApp::before {
-        content: '';
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        z-index: 0;
-        background:
-            radial-gradient(circle at 15% 20%, rgba(226, 192, 141, 0.16), transparent 45%),
-            radial-gradient(circle at 85% 75%, rgba(196, 148, 84, 0.14), transparent 50%),
-            radial-gradient(ellipse at 50% 100%, rgba(20, 40, 30, 0.5), transparent 60%);
-        animation: mistDrift 22s ease-in-out infinite alternate;
-    }
+    header, footer, #MainMenu { visibility: hidden; }
 
-    @keyframes mistDrift {
-        0%   { opacity: 0.75; transform: translateY(0px) scale(1); }
-        100% { opacity: 1;    transform: translateY(-18px) scale(1.04); }
-    }
-
-    /* Hide standard Streamlit header & footer */
-    header, footer, #MainMenu {
-        visibility: hidden;
-    }
-
-    /* Main Container Padding */
     .block-container {
-        padding-top: 2rem !important;
+        padding-top: 4rem !important;
         padding-bottom: 6rem !important;
-        max-width: 820px !important;
-        position: relative;
-        z-index: 1;
+        max-width: 760px !important;
     }
 
-    /* ---------------- Hero Frame (parallax photograph) ---------------- */
-    .hero-frame {
-        position: relative;
-        height: 58vh;
-        min-height: 380px;
-        border-radius: 26px;
-        overflow: hidden;
-        margin: 0.5rem 0 2.6rem 0;
-        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(226, 192, 141, 0.28);
-    }
-
-    .parallax-img {
-        position: absolute;
-        top: -18%;
-        left: -6%;
-        width: 112%;
-        height: 140%;
-        background-image: url('__HERO_IMAGE__');
-        background-size: cover;
-        background-position: center 35%;
-        will-change: transform;
-        transition: transform 0.05s linear;
-    }
-
-    .hero-frame::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(
-            to bottom,
-            rgba(15, 12, 8, 0.15) 0%,
-            rgba(12, 9, 6, 0.35) 55%,
-            rgba(8, 6, 4, 0.85) 100%
-        );
-    }
-
-    .hero-copy {
-        position: absolute;
-        left: 0; right: 0; bottom: 1.9rem;
-        z-index: 2;
-        text-align: center;
-        padding: 0 1.5rem;
-    }
-
-    /* Editorial Header Typography */
-    .editorial-sub {
-        font-family: 'Cinzel', serif;
-        letter-spacing: 0.45em;
-        text-transform: uppercase;
-        font-size: 0.8rem;
-        color: #e2c08d;
-        text-align: center;
-        margin-bottom: 0.7rem;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-    }
-
-    .editorial-title {
-        font-family: 'Cormorant Garamond', serif;
-        font-size: 3.6rem;
-        font-weight: 300;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #ffffff;
-        text-align: center;
-        text-shadow: 0 4px 25px rgba(0, 0, 0, 0.75);
-        margin-bottom: 0.4rem;
-        line-height: 1.08;
-    }
-
-    .editorial-tagline {
-        font-family: 'Cormorant Garamond', serif;
-        font-style: italic;
-        font-size: 1.25rem;
-        color: #ecdfc8;
-        text-align: center;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-    }
-
-    .editorial-rule {
+    /* ---------------- Hero ---------------- */
+    .eyebrow {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 0.9rem;
-        margin: 0 auto 1.6rem auto;
-        max-width: 220px;
+        gap: 0.5rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-soft);
+        margin-bottom: 1.1rem;
     }
-    .editorial-rule .line {
-        flex: 1;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(226,192,141,0.65), transparent);
-    }
-    .editorial-rule .dot {
-        width: 5px; height: 5px;
+    .eyebrow .dot {
+        width: 6px; height: 6px;
         border-radius: 50%;
-        background: #e2c08d;
-        box-shadow: 0 0 8px rgba(226,192,141,0.8);
+        background: var(--accent);
     }
 
-    /* Scroll cue */
-    .scroll-cue {
-        position: absolute;
-        bottom: -0.4rem; left: 50%;
-        transform: translateX(-50%);
-        z-index: 2;
-        color: #e2c08d;
-        font-size: 1.3rem;
-        opacity: 0.85;
-        animation: bounce 2.2s ease-in-out infinite;
+    .hero-title {
+        font-size: clamp(2.6rem, 6vw, 4.2rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+        text-align: center;
+        color: var(--text);
+        margin-bottom: 1.1rem;
     }
-    @keyframes bounce {
-        0%, 100% { transform: translate(-50%, 0); opacity: 0.5; }
-        50%      { transform: translate(-50%, 8px); opacity: 1; }
+    .hero-title .accent { color: var(--accent); }
+
+    .hero-sub {
+        font-size: 1.15rem;
+        font-weight: 400;
+        color: var(--text-soft);
+        text-align: center;
+        max-width: 520px;
+        margin: 0 auto 3.2rem auto;
+        line-height: 1.6;
     }
 
-    /* ---------------- Scroll-reveal for control groups ---------------- */
+    /* ---------------- Scroll reveal ---------------- */
     .reveal {
         opacity: 0;
-        transform: translateY(32px);
-        transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1);
+        transform: translateY(22px) scale(0.98);
+        transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1);
     }
-    .reveal.in-view {
-        opacity: 1;
-        transform: translateY(0);
+    .reveal.in-view { opacity: 1; transform: translateY(0) scale(1); }
+
+    /* Stagger the three feature columns */
+    div[data-testid="stHorizontalBlock"]:has(.feature-card) > div:nth-of-type(1) .reveal { transition-delay: 0s; }
+    div[data-testid="stHorizontalBlock"]:has(.feature-card) > div:nth-of-type(2) .reveal { transition-delay: 0.08s; }
+    div[data-testid="stHorizontalBlock"]:has(.feature-card) > div:nth-of-type(3) .reveal { transition-delay: 0.16s; }
+
+    /* ---------------- Feature cards (Notion-style) ---------------- */
+    .feature-card {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1.3rem 1.2rem;
+        height: 100%;
+        transition: border-color 0.25s ease, transform 0.25s ease;
+    }
+    .feature-card:hover {
+        border-color: rgba(0, 113, 227, 0.35);
+        transform: translateY(-2px);
+    }
+    .feature-icon { font-size: 1.3rem; margin-bottom: 0.6rem; }
+    .feature-title {
+        font-size: 0.92rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 0.3rem;
+    }
+    .feature-desc {
+        font-size: 0.84rem;
+        color: var(--text-soft);
+        line-height: 1.5;
     }
 
-    /* Journal card that holds the controls */
+    /* ---------------- Main control card ---------------- */
     div[data-testid="stVerticalBlockBorderWrapper"] {
-        background: rgba(10, 12, 9, 0.42) !important;
-        backdrop-filter: blur(18px) !important;
-        -webkit-backdrop-filter: blur(18px) !important;
-        border: 1px solid rgba(226, 192, 141, 0.28) !important;
-        border-radius: 22px !important;
-        padding: 0.6rem 0.4rem !important;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+        background: var(--bg) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 20px !important;
+        padding: 0.8rem 0.6rem !important;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 12px 32px rgba(0,0,0,0.05) !important;
+        margin-top: 0.5rem;
     }
 
-    /* REMOVE DEFAULT RED ACCENTS ON SLIDERS */
-    div[data-baseweb="slider"] div[role="slider"] {
-        background-color: #e2c08d !important;
-        border: 2px solid #ffffff !important;
-        box-shadow: 0 0 10px rgba(226, 192, 141, 0.8) !important;
-    }
-
-    div[data-baseweb="slider"] div[data-testid="stSliderTickBar"] {
-        background-color: rgba(226, 192, 141, 0.25) !important;
-    }
-
-    /* Active slider track gradient override */
-    div[data-baseweb="slider"] > div > div > div {
-        background: linear-gradient(90deg, #c99e66 0%, #e2c08d 100%) !important;
-    }
-
-    div[data-baseweb="slider"] div {
-        color: #e2c08d !important;
-    }
-
-    /* Select Dropdown Styling */
-    div[data-baseweb="select"], div[data-baseweb="select"] * {
-        background-color: rgba(0, 0, 0, 0.35) !important;
-        backdrop-filter: blur(12px) !important;
-        -webkit-backdrop-filter: blur(12px) !important;
-        border: 1px solid rgba(226, 192, 141, 0.3) !important;
-        border-radius: 12px !important;
-        color: #ffffff !important;
-    }
-
-    /* COMPLETELY REMOVE BACKGROUND FROM TEXTAREA & PARENT CONTAINERS */
-    div[data-testid="stTextArea"],
-    div[data-testid="stTextArea"] *,
-    div[data-baseweb="textarea"],
-    div[data-baseweb="textarea"] * {
-        background: transparent !important;
-        background-color: transparent !important;
-        box-shadow: none !important;
-    }
-
-    /* ADD ELEGANT TRANSPARENT BORDER DIRECTLY ON TEXTAREA */
-    div[data-baseweb="textarea"] {
-        border: 1px solid rgba(226, 192, 141, 0.4) !important;
-        border-radius: 14px !important;
-        backdrop-filter: blur(4px) !important;
-        -webkit-backdrop-filter: blur(4px) !important;
-        padding: 0.5rem !important;
-    }
-
-    /* TEXT INPUT STYLE */
-    textarea[data-testid="stTextArea"],
-    .stTextArea textarea {
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-        font-family: 'Plus Jakarta Sans', sans-serif !important;
-        font-size: 1.15rem !important;
-        line-height: 1.75 !important;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
-    }
-
-    textarea::placeholder {
-        color: rgba(255, 255, 255, 0.6) !important;
-        -webkit-text-fill-color: rgba(255, 255, 255, 0.6) !important;
+    .section-label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: var(--text-soft);
+        margin: 0.4rem 0 1.2rem 0;
     }
 
     label p {
-        font-family: 'Cinzel', serif !important;
-        letter-spacing: 0.18em !important;
-        text-transform: uppercase !important;
-        font-size: 0.78rem !important;
-        color: #e2c08d !important;
-        text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+        font-family: 'Inter', sans-serif !important;
+        font-weight: 500 !important;
+        letter-spacing: 0 !important;
+        text-transform: none !important;
+        font-size: 0.86rem !important;
+        color: var(--text-soft) !important;
     }
 
-    /* Gold Action Button */
+    /* Select */
+    div[data-baseweb="select"] > div {
+        background-color: var(--bg-soft) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 10px !important;
+        color: var(--text) !important;
+    }
+    div[data-baseweb="select"] * { color: var(--text) !important; }
+
+    /* Sliders */
+    div[data-baseweb="slider"] div[role="slider"] {
+        background-color: #ffffff !important;
+        border: 2px solid var(--accent) !important;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.25) !important;
+    }
+    div[data-baseweb="slider"] > div > div > div {
+        background: var(--accent) !important;
+    }
+    div[data-testid="stTickBar"], div[data-baseweb="slider"] div[data-testid="stSliderTickBar"] {
+        background-color: var(--border) !important;
+    }
+    div[data-baseweb="slider"] div { color: var(--text-soft) !important; }
+
+    /* Text area */
+    div[data-testid="stTextArea"] textarea,
+    .stTextArea textarea {
+        background-color: var(--bg-soft) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 12px !important;
+        color: var(--text) !important;
+        -webkit-text-fill-color: var(--text) !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 1.02rem !important;
+        line-height: 1.7 !important;
+        padding: 0.9rem !important;
+    }
+    textarea::placeholder {
+        color: rgba(29, 29, 31, 0.35) !important;
+        -webkit-text-fill-color: rgba(29, 29, 31, 0.35) !important;
+    }
+
+    /* Button — Apple pill CTA */
     .stButton > button {
         width: 100%;
-        background: linear-gradient(135deg, #d4a76a 0%, #a3773f 100%) !important;
+        background: var(--text) !important;
         color: #ffffff !important;
-        font-family: 'Cinzel', serif !important;
-        letter-spacing: 0.25em !important;
-        text-transform: uppercase !important;
-        font-size: 0.95rem !important;
-        padding: 0.95rem 2rem !important;
-        border-radius: 35px !important;
-        border: 1px solid rgba(255, 215, 0, 0.35) !important;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
-        transition: all 0.35s ease !important;
-        margin-top: 1.2rem !important;
+        font-family: 'Inter', sans-serif !important;
+        font-weight: 600 !important;
+        letter-spacing: 0 !important;
+        text-transform: none !important;
+        font-size: 1rem !important;
+        padding: 0.85rem 2rem !important;
+        border-radius: 999px !important;
+        border: none !important;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.15) !important;
+        transition: all 0.25s ease !important;
+        margin-top: 1.4rem !important;
     }
-
     .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 14px 35px rgba(212, 167, 106, 0.5) !important;
-        background: linear-gradient(135deg, #e2b67a 0%, #b5864a 100%) !important;
+        background: var(--accent) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 20px rgba(0, 113, 227, 0.3) !important;
     }
 
-    /* Minimal Divider */
-    .gold-divider {
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(226, 192, 141, 0.35), transparent);
-        margin: 3rem 0 2rem 0;
-    }
-
-    .footer-quote {
-        text-align: center;
-        font-family: 'Cormorant Garamond', serif;
-        font-style: italic;
-        color: #d4c5b3;
-        font-size: 1.15rem;
-    }
-
-    .footer-mark {
-        text-align: center;
-        font-family: 'Cinzel', serif;
-        letter-spacing: 0.35em;
-        text-transform: uppercase;
-        font-size: 0.7rem;
-        color: rgba(226, 192, 141, 0.6);
-        margin-top: 0.8rem;
-    }
-
-    /* Audio Player Custom Styling */
+    /* Audio player */
     audio {
         width: 100% !important;
-        margin-top: 1.5rem !important;
-        border-radius: 30px !important;
-        filter: invert(0.9) sepia(0.3) saturate(1.8) hue-rotate(340deg);
+        margin-top: 1.4rem !important;
+        border-radius: 14px !important;
     }
 
-    /* Gold custom scrollbar */
+    /* Alerts */
+    div[data-testid="stAlert"] {
+        border-radius: 12px !important;
+        border: 1px solid var(--border) !important;
+    }
+
+    /* Footer */
+    .footer-row {
+        border-top: 1px solid var(--border);
+        margin-top: 3.5rem;
+        padding-top: 1.6rem;
+        text-align: center;
+        color: var(--text-soft);
+        font-size: 0.82rem;
+    }
+
     ::-webkit-scrollbar { width: 10px; }
-    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
-    ::-webkit-scrollbar-thumb {
-        background: linear-gradient(180deg, #d4a76a, #a3773f);
-        border-radius: 10px;
-    }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
     </style>
-""".replace("__HERO_IMAGE__", HERO_IMAGE), unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-# Hero photograph with parallax + editorial masthead overlaid
-st.markdown(f"""
-    <div class="hero-frame">
-        <div class="parallax-img" data-speed="0.35"></div>
-        <div class="hero-copy">
-            <div class="editorial-sub">Neural Voice Synthesis</div>
-            <div class="editorial-title">Lao Text to Speech</div>
-            <div class="editorial-tagline">— Transform Lao script into natural, resonant voice —</div>
-        </div>
-        <div class="scroll-cue">⌄</div>
+# ---------------------------------------------------------------------------
+# Hero
+# ---------------------------------------------------------------------------
+st.markdown("""
+    <div class="eyebrow"><span class="dot"></span>Neural Text-to-Speech</div>
+    <div class="hero-title">Lao, spoken<br><span class="accent">naturally.</span></div>
+    <div class="hero-sub">
+        Paste Lao script and hear it read aloud in a clear, natural neural voice —
+        tune the speed and pitch until it sounds just right.
     </div>
 """, unsafe_allow_html=True)
 
-st.markdown("""
-    <div class="editorial-rule"><div class="line"></div><div class="dot"></div><div class="line"></div></div>
-""", unsafe_allow_html=True)
+# Feature strip
+feat_cols = st.columns(3)
+features = [
+    ("🗣️", "Two neural voices", "A warm female voice and a grounded male voice, both native to Lao."),
+    ("🎚️", "Fine-tuned control", "Dial in speech speed and pitch to match the tone you need."),
+    ("⚡", "Instant playback", "Generates and plays back your passage as an MP3 in seconds."),
+]
+for col, (icon, title, desc) in zip(feat_cols, features):
+    with col:
+        st.markdown(f"""
+            <div class="reveal feature-card">
+                <div class="feature-icon">{icon}</div>
+                <div class="feature-title">{title}</div>
+                <div class="feature-desc">{desc}</div>
+            </div>
+        """, unsafe_allow_html=True)
 
-# Journal card holding the controls
+st.markdown("<div style='height: 2.6rem'></div>", unsafe_allow_html=True)
+
+# ---------------------------------------------------------------------------
+# Control card
+# ---------------------------------------------------------------------------
 with st.container(border=True):
-    # Voice Selection
+    st.markdown('<div class="section-label">Configure</div>', unsafe_allow_html=True)
+
     voice = st.selectbox(
-        "Select Voice Profile",
+        "Voice",
         ["lo-LA-KeomanyNeural (Female)", "lo-LA-ChanthavongNeural (Male)"]
     )
     voice_code = voice.split(" ")[0]
 
-    # Speed & Pitch Controls
     col_speed, col_pitch = st.columns(2)
 
     with col_speed:
-        speed = st.slider("Speech Speed", min_value=0.6, max_value=1.4, value=1.0, step=0.05)
+        speed = st.slider("Speed", min_value=0.6, max_value=1.4, value=1.0, step=0.05)
         rate_str = f"{int((speed - 1.0) * 100):+d}%"
 
     with col_pitch:
-        pitch = st.slider("Voice Tone / Pitch", min_value=-20, max_value=20, value=0, step=5)
+        pitch = st.slider("Pitch", min_value=-20, max_value=20, value=0, step=5)
         pitch_str = f"{pitch:+d}Hz"
 
-    # Script Input Area
     lao_text = st.text_area(
-        "Lao Script Passage",
-        height=220,
+        "Lao script",
+        height=200,
         placeholder="ວາງຂໍ້ຄວາມພາສາລາວຢູ່ທີ່ນີ້..."
     )
 
-    # Async Audio Generation
     async def generate_audio(text, voice_name, rate, pitch_val):
         communicate = edge_tts.Communicate(text, voice_name, rate=rate, pitch=pitch_val)
         await communicate.save("output.mp3")
 
-    # Trigger Action
-    if st.button("▶ Read Aloud"):
+    if st.button("Generate speech"):
         if lao_text.strip():
-            with st.spinner("Synthesizing natural Lao speech..."):
+            with st.spinner("Synthesizing speech..."):
                 asyncio.run(generate_audio(lao_text, voice_code, rate_str, pitch_str))
                 st.audio("output.mp3", format="audio/mp3", autoplay=True)
-                st.success("Playback Ready")
+                st.success("Playback ready")
         else:
-            st.warning("Please paste Lao script first.")
+            st.warning("Paste some Lao script first.")
 
+# ---------------------------------------------------------------------------
 # Footer
+# ---------------------------------------------------------------------------
 st.markdown("""
-    <div class="gold-divider"></div>
-    <div class="footer-quote">"Resonant Lao neural speech, crafted for long-form listening."</div>
-    <div class="footer-mark">Jet Set Journal · Luang Prabang</div>
+    <div class="footer-row">Built for clear, natural Lao listening.</div>
 """, unsafe_allow_html=True)
 
-# Scroll-driven parallax + fade-in reveal (reaches into the parent Streamlit
-# document since the component iframe shares the same origin).
+# ---------------------------------------------------------------------------
+# Scroll-driven reveal (reaches into the parent Streamlit document, since the
+# component iframe shares the same origin — plain <script> tags in
+# st.markdown never execute).
+# ---------------------------------------------------------------------------
 components.html("""
 <script>
 (function() {
@@ -424,11 +348,8 @@ components.html("""
     }, { threshold: 0.12 });
 
     const revealSelectors = [
+        '.feature-card',
         'div[data-testid="stVerticalBlockBorderWrapper"]',
-        'div[data-testid="stSelectbox"]',
-        'div[data-testid="stSlider"]',
-        'div[data-testid="stTextArea"]',
-        'div[data-testid="stButton"]',
         'div[data-testid="stAudio"]',
         'div[data-testid="stAlert"]'
     ].join(', ');
@@ -442,20 +363,9 @@ components.html("""
         });
     }
 
-    function onScroll() {
-        const y = window.parent.scrollY || 0;
-        doc.querySelectorAll('.parallax-img').forEach((el) => {
-            const speed = parseFloat(el.dataset.speed || '0.3');
-            el.style.transform = 'translate3d(0,' + (y * speed) + 'px,0)';
-        });
-    }
-
-    window.parent.addEventListener('scroll', onScroll, { passive: true });
     const observer = new MutationObserver(observeNewReveals);
     observer.observe(doc.body, { childList: true, subtree: true });
-
     observeNewReveals();
-    onScroll();
 })();
 </script>
 """, height=0)
